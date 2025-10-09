@@ -8,6 +8,7 @@ void inicializarAlmacen(int filas, int columnas);
 void limpiarMemoriaAlmacen(int filas);
 void inicializarVectoresP(int tam);
 void limpiarMemoriaVectoresP();
+void colocarLote(int filas, int columnas, int tam_vectores_p);
 void finalizarEjecucion(int filas);
 
 // Estructuras y variables globales
@@ -84,7 +85,7 @@ int main() {
 
         switch (opc) {
         case 1:
-            imprimirMensaje("OPCION", "Colocacion de lote");
+            colocarLote(filas, columnas, tam_vectores_p);
             break;
         case 2:
             imprimirMensaje("OPCION", "Reporte por fila");
@@ -101,6 +102,9 @@ int main() {
         case 0:
             finalizarEjecucion(filas);
             break;
+        default:
+            imprimirMensaje("ERROR", "Opcion no reconocida");
+            break;
         }
     }
 
@@ -109,6 +113,7 @@ int main() {
 
 int imprimirMenu(){
     int opc_selecc = -1;
+    bool entrada_valida = false;
 
     std::cout << "+---------------------------------------------+" << std::endl;
     std::cout << "|               ALPHATECH                     |" << std::endl;
@@ -121,11 +126,13 @@ int imprimirMenu(){
     std::cout << "|  0. Salir                                   |" << std::endl;
     std::cout << "+---------------------------------------------+" << std::endl;
 
-    while (opc_selecc < 0 || opc_selecc > 5) {
+    while (!entrada_valida || opc_selecc < 0 || opc_selecc > 5) {
         std::cout << "Ingrese una opcion (0-5): ";
-        std::cin >> opc_selecc;
-
-        if (opc_selecc < 0 || opc_selecc > 5) {
+        entrada_valida = validarEntradaNumerica(opc_selecc);
+        
+        if (!entrada_valida) {
+            imprimirMensaje("ADVERTENCIA", "No se aceptan entradas no numericas para este campo");
+        } else if (opc_selecc < 0 || opc_selecc > 5) {
             imprimirMensaje("ADVERTENCIA", "Opcion no valida");
         }
     }
@@ -174,6 +181,29 @@ void limpiarMemoriaVectoresP() {
 
     delete [] indicesDisponibles;
     indicesDisponibles = nullptr;
+}
+
+void colocarLote(int filas, int columnas, int tam_vectores_p) {
+    int fila, columna;
+    bool entrada_valida = false;
+
+    while (!entrada_valida || fila < 0 || fila >= filas) {
+        std::cout << "Ingrese la fila donde desea colocar el lote (0 a " << filas - 1 << "): ";
+        entrada_valida = validarEntradaNumerica(fila);
+        if (!entrada_valida || fila < 0 || fila >= filas) {
+            imprimirMensaje("ADVERTENCIA", "Fila no valida");
+            entrada_valida = false;
+        }
+    }
+
+    while (!entrada_valida || columna < 0 || columna >= columnas) {
+        std::cout << "Ingrese la columna donde desea colocar el lote (0 a " << columnas - 1 << "): ";
+        entrada_valida = validarEntradaNumerica(columna);
+        if (!entrada_valida || columna < 0 || columna >= columnas) {
+            imprimirMensaje("ADVERTENCIA", "Columna no valida");
+            entrada_valida = false;
+        }
+    }
 }
 
 void finalizarEjecucion(int filas) {
