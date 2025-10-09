@@ -3,9 +3,12 @@
 // Prototipos de funciones
 int imprimirMenu();
 void imprimirMensaje(std::string tipo, std::string mensaje);
-void inicializarAlmacen(int filas, int columnas);
-void inicializarVectoresP(int tam);
 bool validarEntradaNumerica(int &entrada);
+void inicializarAlmacen(int filas, int columnas);
+void limpiarMemoriaAlmacen(int filas);
+void inicializarVectoresP(int tam);
+void limpiarMemoriaVectoresP();
+void finalizarEjecucion(int filas);
 
 // Estructuras y variables globales
 typedef struct {
@@ -96,7 +99,7 @@ int main() {
             imprimirMensaje("OPCION", "Deshacer inspeccion");
             break;
         case 0:
-            imprimirMensaje("FIN", "Hasta la proxima...");
+            finalizarEjecucion(filas);
             break;
         }
     }
@@ -151,7 +154,32 @@ void inicializarAlmacen(int filas, int columnas) {
     }
 }
 
+void limpiarMemoriaAlmacen(int filas) {
+    for (int i = 0; i < filas; i++) {
+        delete [] almacen[i];
+        almacen[i] = nullptr;
+    }
+    delete [] almacen;
+    almacen = nullptr;
+}
+
 void inicializarVectoresP(int tam) {
     maestroLotes = new LoteProduccion[tam];
     indicesDisponibles = new int[tam];
+}
+
+void limpiarMemoriaVectoresP() {
+    delete [] maestroLotes;
+    maestroLotes = nullptr;
+
+    delete [] indicesDisponibles;
+    indicesDisponibles = nullptr;
+}
+
+void finalizarEjecucion(int filas) {
+    limpiarMemoriaAlmacen(filas);
+    imprimirMensaje("LIMPIEZA", "Memoria de almacen liberada...");
+    limpiarMemoriaVectoresP();
+    imprimirMensaje("LIMPIEZA", "Memoria de vectores paralelos liberada...");
+    imprimirMensaje("FIN", "Hasta la proxima...");
 }
