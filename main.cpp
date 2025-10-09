@@ -1,11 +1,13 @@
 #include <iostream>
 
+// Prototipos de funciones
 int imprimirMenu();
 void imprimirMensaje(std::string tipo, std::string mensaje);
 void inicializarAlmacen(int filas, int columnas);
 void inicializarVectoresP(int tam);
 bool validarEntradaNumerica(int &entrada);
 
+// Estructuras y variables globales
 typedef struct {
  int idLote;
  char nombreComponente[50];
@@ -25,7 +27,7 @@ int main() {
     int opc = - 1, filas = 0, columnas = 0, tam_vectores_p = 0;
     bool entrada_valida = false;
 
-    imprimirMensaje("INICIO", "Favor de inicializar los componentes del almacen");
+    imprimirMensaje("INICIALIZACION", "Inicializando componentes del almacen...");
     
     while (filas <= 0) {
         std::cout << "Ingrese el numero de filas del almacen: ";
@@ -52,6 +54,9 @@ int main() {
     }
 
     inicializarAlmacen(filas, columnas);
+    imprimirMensaje("EXITO", "Almacen inicializado correctamente");
+
+    imprimirMensaje("INICIALIZACION", "Inicializando vectores paralelos...");
 
     while (tam_vectores_p <= 0) {
         std::cout << "Ingrese el numero de lotes activos : ";
@@ -69,8 +74,7 @@ int main() {
     }
     
     inicializarVectoresP(tam_vectores_p);
-
-    imprimirMensaje("EXITO", "Componentes del almacen inicializados correctamente");
+    imprimirMensaje("EXITO", "Vectores paralelos inicializados correctamente");
 
     while (opc != 0) {
         opc = imprimirMenu();
@@ -130,6 +134,16 @@ void imprimirMensaje(std::string tipo, std::string mensaje){
     std::cout << tipo << ": " << mensaje << std::endl;
 }
 
+bool validarEntradaNumerica(int &entrada) {
+    std::cin >> entrada;
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(1000, '\n');
+        return false;
+    }
+    return true;
+}
+
 void inicializarAlmacen(int filas, int columnas) {
     almacen = new LoteProduccion *[filas];
     for (int i = 0; i < filas; i++) {
@@ -140,14 +154,4 @@ void inicializarAlmacen(int filas, int columnas) {
 void inicializarVectoresP(int tam) {
     maestroLotes = new LoteProduccion[tam];
     indicesDisponibles = new int[tam];
-}
-
-bool validarEntradaNumerica(int &entrada) {
-    std::cin >> entrada;
-    if (std::cin.fail()) {
-        std::cin.clear();
-        std::cin.ignore(1000, '\n');
-        return false;
-    }
-    return true;
 }
