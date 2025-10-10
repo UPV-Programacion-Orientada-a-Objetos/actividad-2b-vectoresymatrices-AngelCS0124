@@ -104,9 +104,6 @@ int main() {
         case 0:
             finalizarEjecucion(filas);
             break;
-        default:
-            imprimirMensaje("ERROR", "Opcion no reconocida");
-            break;
         }
     }
 
@@ -237,7 +234,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     if (indiceDisponible == -1) {
-        imprimirMensaje("ERROR", "No hay espacio disponible en el maestro de lotes");
+        imprimirMensaje("ADVERTENCIA", "No hay espacio disponible en el maestro de lotes");
         return;
     }
 
