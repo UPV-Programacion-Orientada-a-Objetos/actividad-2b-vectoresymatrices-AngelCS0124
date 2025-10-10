@@ -185,6 +185,9 @@ void limpiarMemoriaAlmacen(int filas, int columnas) {
 void inicializarVectoresP(int tam) {
     maestroLotes = new LoteProduccion[tam];
     indicesDisponibles = new int[tam];
+
+    pilaIDLote = new int[capacidadPila];
+    pilaResultado = new int[capacidadPila];
     
     for (int i = 0; i < tam; i++) {
         indicesDisponibles[i] = 0;
