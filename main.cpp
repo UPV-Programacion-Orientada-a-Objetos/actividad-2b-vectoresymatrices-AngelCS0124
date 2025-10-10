@@ -6,13 +6,13 @@ int imprimirMenu();
 void imprimirMensaje(std::string tipo, std::string mensaje);
 bool validarEntradaNumerica(int &entrada);
 void inicializarAlmacen(int filas, int columnas);
-void limpiarMemoriaAlmacen(int filas);
+void limpiarMemoriaAlmacen(int filas, int columnas);
 void inicializarVectoresP(int tam);
 void limpiarMemoriaVectoresP();
 void colocarLote(int filas, int columnas, int tam_vectores_p);
 void reportePorFila(int filas, int columnas);
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p);
-void finalizarEjecucion(int filas);
+void finalizarEjecucion(int filas, int columnas);
 
 // Estructuras y variables globales
 typedef struct {
@@ -22,7 +22,7 @@ typedef struct {
  int cantidadTotal;
 } LoteProduccion;
 
-LoteProduccion **almacen;
+LoteProduccion ***almacen;
 
 LoteProduccion *maestroLotes;
 int *indicesDisponibles;
@@ -103,7 +103,7 @@ int main() {
             imprimirMensaje("OPCION", "Deshacer inspeccion");
             break;
         case 0:
-            finalizarEjecucion(filas);
+            finalizarEjecucion(filas, columnas);
             break;
         }
     }
@@ -155,20 +155,23 @@ bool validarEntradaNumerica(int &entrada) {
 }
 
 void inicializarAlmacen(int filas, int columnas) {
-    almacen = new LoteProduccion *[filas];
+    almacen = new LoteProduccion**[filas];
     for (int i = 0; i < filas; i++) {
-        almacen[i] = new LoteProduccion[columnas];
+        almacen[i] = new LoteProduccion*[columnas];
         for (int j = 0; j < columnas; j++) {
-            almacen[i][j].idLote = 0;
-            almacen[i][j].nombreComponente[0] = '\0';
-            almacen[i][j].pesoUnitario = 0.0f;
-            almacen[i][j].cantidadTotal = 0;
+            almacen[i][j] = nullptr;  
         }
     }
 }
 
-void limpiarMemoriaAlmacen(int filas) {
+void limpiarMemoriaAlmacen(int filas, int columnas) {
     for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            if (almacen[i][j] != nullptr) {
+                delete almacen[i][j];
+                almacen[i][j] = nullptr;
+            }
+        }
         delete [] almacen[i];
         almacen[i] = nullptr;
     }
@@ -220,7 +223,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     // Verificar si la celda está ocupada
-    if (almacen[fila][columna].idLote != 0) {
+    if (almacen[fila][columna] != nullptr) {
         imprimirMensaje("ADVERTENCIA", "La celda ya contiene un lote");
         return;
     }
@@ -235,17 +238,17 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     if (indiceDisponible == -1) {
-        imprimirMensaje("ADVERTENCIA", "No hay espacio disponible en el maestro de lotes");
+        imprimirMensaje("ERROR", "No hay espacio disponible en el maestro de lotes");
         return;
     }
 
-    LoteProduccion nuevoLote;
+    LoteProduccion* nuevoLote = new LoteProduccion;
     
     // Validar ID único
     bool idUnico = false;
     while (!idUnico) {
         std::cout << "Ingrese el ID del lote: ";
-        while (!validarEntradaNumerica(nuevoLote.idLote) || nuevoLote.idLote <= 0) {
+        while (!validarEntradaNumerica(nuevoLote->idLote) || nuevoLote->idLote <= 0) {
             imprimirMensaje("ADVERTENCIA", "ID de lote no valido");
             std::cout << "Ingrese el ID del lote: ";
         }
@@ -253,7 +256,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         // Verificar si el ID ya existe
         bool idExiste = false;
         for (int i = 0; i < tam_vectores_p; i++) {
-            if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == nuevoLote.idLote) {
+            if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == nuevoLote->idLote) {
                 idExiste = true;
                 break;
             }
@@ -272,9 +275,9 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     bool nombreUnico = false;
     while (!nombreUnico) {
         std::cout << "Ingrese el nombre del componente: ";
-        std::cin.getline(nuevoLote.nombreComponente, 50);
+        std::cin.getline(nuevoLote->nombreComponente, 50);
         
-        std::string nuevoNombre = nuevoLote.nombreComponente;
+        std::string nuevoNombre = nuevoLote->nombreComponente;
         
         // Verificar si el nombre ya existe
         bool nombreExiste = false;
@@ -296,7 +299,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     std::cout << "Ingrese el peso unitario: ";
-    while (!(std::cin >> nuevoLote.pesoUnitario) || nuevoLote.pesoUnitario <= 0) {
+    while (!(std::cin >> nuevoLote->pesoUnitario) || nuevoLote->pesoUnitario <= 0) {
         imprimirMensaje("ADVERTENCIA", "Peso unitario no valido");
         std::cin.clear();
         std::cin.ignore(1000, '\n');
@@ -304,16 +307,15 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     std::cout << "Ingrese la cantidad total: ";
-    while (!validarEntradaNumerica(nuevoLote.cantidadTotal) || nuevoLote.cantidadTotal <= 0) {
+    while (!validarEntradaNumerica(nuevoLote->cantidadTotal) || nuevoLote->cantidadTotal <= 0) {
         imprimirMensaje("ADVERTENCIA", "Cantidad total no valida");
         std::cout << "Ingrese la cantidad total: ";
     }
 
     // Asignar el lote al maestro
-    maestroLotes[indiceDisponible] = nuevoLote;
+    maestroLotes[indiceDisponible] = *nuevoLote;
     indicesDisponibles[indiceDisponible] = 1;
 
-    // Asignar el puntero en el almacén
     almacen[fila][columna] = nuevoLote;
 
     imprimirMensaje("EXITO", "Lote colocado correctamente en la posicion (" + 
@@ -321,10 +323,10 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     
     // Mostrar resumen del lote colocado como confirmación
     std::cout << "Resumen del lote:" << std::endl;
-    std::cout << "  ID: " << nuevoLote.idLote << std::endl;
-    std::cout << "  Componente: " << nuevoLote.nombreComponente << std::endl;
-    std::cout << "  Peso unitario: " << nuevoLote.pesoUnitario << std::endl;
-    std::cout << "  Cantidad total: " << nuevoLote.cantidadTotal << std::endl;
+    std::cout << "  ID: " << nuevoLote->idLote << std::endl;
+    std::cout << "  Componente: " << nuevoLote->nombreComponente << std::endl;
+    std::cout << "  Peso unitario: " << nuevoLote->pesoUnitario << std::endl;
+    std::cout << "  Cantidad total: " << nuevoLote->cantidadTotal << std::endl;
 }
 
 void reportePorFila(int filas, int columnas) {
@@ -341,6 +343,24 @@ void reportePorFila(int filas, int columnas) {
             entrada_valida = false;
         }
     }
+
+    std::cout << "--- Reporte de Fila " << filaReporte << " ---" << std::endl;
+    
+    // Recorrer todas las columnas de la fila especificada para verificar cuales estan ocupadas y cuales no
+    for (int j = 0; j < columnas; j++) {
+        if (almacen[filaReporte][j] != nullptr) {
+            std::cout << "(" << filaReporte << ", " << j << "): ";
+            std::cout << "ID: " << almacen[filaReporte][j]->idLote << ", ";
+            std::cout << "Nombre: " << almacen[filaReporte][j]->nombreComponente << std::endl;
+            hayLotes = true;
+        } else {
+            std::cout << "(" << filaReporte << ", " << j << "): Vacio" << std::endl;
+        }
+    }
+    // Si no se encontraron lotes en la fila, se le avisa al usuario
+    if (!hayLotes) {
+        imprimirMensaje("INFORMACION", "La fila " + std::to_string(filaReporte) + " no contiene lotes");
+    }
 }
 
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
@@ -353,17 +373,17 @@ void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
     
     std::cout << "Resultados de la busqueda para: " << nombreBuscado << std::endl;
     std::cout << "----------------------------------------" << std::endl;
-    // Recorrer el almacen para buscar el componente
+    
     for (int i = 0; i < filas; i++) {
         for (int j = 0; j < columnas; j++) {
-            if (almacen[i][j].idLote != 0) {
-                std::string nombreActual = almacen[i][j].nombreComponente;
+            if (almacen[i][j] != nullptr) { 
+                std::string nombreActual = almacen[i][j]->nombreComponente;
                 if (nombreActual == nombreBuscado) {
                     std::cout << "Ubicacion: (" << i << ", " << j << ")" << std::endl;
-                    std::cout << "  ID del lote: " << almacen[i][j].idLote << std::endl;
-                    std::cout << "  Componente: " << almacen[i][j].nombreComponente << std::endl;
-                    std::cout << "  Peso unitario: " << almacen[i][j].pesoUnitario << std::endl;
-                    std::cout << "  Cantidad total: " << almacen[i][j].cantidadTotal << std::endl;
+                    std::cout << "  ID del lote: " << almacen[i][j]->idLote << std::endl;
+                    std::cout << "  Componente: " << almacen[i][j]->nombreComponente << std::endl;
+                    std::cout << "  Peso unitario: " << almacen[i][j]->pesoUnitario << std::endl;
+                    std::cout << "  Cantidad total: " << almacen[i][j]->cantidadTotal << std::endl;
                     std::cout << "----------------------------------------" << std::endl;
                     encontrado = true;
                 }
@@ -376,8 +396,8 @@ void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
     }
 }
 
-void finalizarEjecucion(int filas) {
-    limpiarMemoriaAlmacen(filas);
+void finalizarEjecucion(int filas, int columnas) {
+    limpiarMemoriaAlmacen(filas, columnas);
     imprimirMensaje("LIMPIEZA", "Memoria de almacen liberada...");
     limpiarMemoriaVectoresP();
     imprimirMensaje("LIMPIEZA", "Memoria de vectores paralelos liberada...");
