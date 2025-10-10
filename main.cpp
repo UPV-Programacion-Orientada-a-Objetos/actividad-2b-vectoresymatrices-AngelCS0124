@@ -158,6 +158,12 @@ void inicializarAlmacen(int filas, int columnas) {
     almacen = new LoteProduccion *[filas];
     for (int i = 0; i < filas; i++) {
         almacen[i] = new LoteProduccion[columnas];
+        for (int j = 0; j < columnas; j++) {
+            almacen[i][j].idLote = 0;
+            almacen[i][j].nombreComponente[0] = '\0';
+            almacen[i][j].pesoUnitario = 0.0f;
+            almacen[i][j].cantidadTotal = 0;
+        }
     }
 }
 
@@ -173,6 +179,11 @@ void limpiarMemoriaAlmacen(int filas) {
 void inicializarVectoresP(int tam) {
     maestroLotes = new LoteProduccion[tam];
     indicesDisponibles = new int[tam];
+    
+    for (int i = 0; i < tam; i++) {
+        indicesDisponibles[i] = 0;
+        maestroLotes[i].idLote = 0;
+    }
 }
 
 void limpiarMemoriaVectoresP() {
@@ -187,6 +198,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     int fila, columna;
     bool entrada_valida = false;
 
+    // Validar fila
     while (!entrada_valida || fila < 0 || fila >= filas) {
         std::cout << "Ingrese la fila donde desea colocar el lote (0 a " << filas - 1 << "): ";
         entrada_valida = validarEntradaNumerica(fila);
@@ -196,6 +208,8 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         }
     }
 
+    // Validar columna
+    entrada_valida = false;
     while (!entrada_valida || columna < 0 || columna >= columnas) {
         std::cout << "Ingrese la columna donde desea colocar el lote (0 a " << columnas - 1 << "): ";
         entrada_valida = validarEntradaNumerica(columna);
@@ -204,6 +218,90 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
             entrada_valida = false;
         }
     }
+
+    // Verificar si la celda está ocupada
+    if (almacen[fila][columna].idLote != 0) {
+        imprimirMensaje("ADVERTENCIA", "La celda ya contiene un lote");
+        return;
+    }
+
+    // Buscar índice disponible en el maestro de lotes
+    int indiceDisponible = -1;
+    for (int i = 0; i < tam_vectores_p; i++) {
+        if (indicesDisponibles[i] == 0) {
+            indiceDisponible = i;
+            break;
+        }
+    }
+
+    if (indiceDisponible == -1) {
+        imprimirMensaje("ERROR", "No hay espacio disponible en el maestro de lotes");
+        return;
+    }
+
+    LoteProduccion nuevoLote;
+    
+    // Validar ID único
+    bool idUnico = false;
+    while (!idUnico) {
+        std::cout << "Ingrese el ID del lote: ";
+        while (!validarEntradaNumerica(nuevoLote.idLote) || nuevoLote.idLote <= 0) {
+            imprimirMensaje("ADVERTENCIA", "ID de lote no valido");
+            std::cout << "Ingrese el ID del lote: ";
+        }
+        
+        // Verificar si el ID ya existe
+        bool idExiste = false;
+        for (int i = 0; i < tam_vectores_p; i++) {
+            if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == nuevoLote.idLote) {
+                idExiste = true;
+                break;
+            }
+        }
+        
+        if (idExiste) {
+            imprimirMensaje("ADVERTENCIA", "El ID del lote ya existe. Ingrese un ID diferente.");
+        } else {
+            idUnico = true;
+        }
+    }
+
+    std::cin.ignore(1000, '\n');
+
+    std::cout << "Ingrese el nombre del componente: ";
+    std::cin.getline(nuevoLote.nombreComponente, 50);
+
+    std::cout << "Ingrese el peso unitario: ";
+    while (!(std::cin >> nuevoLote.pesoUnitario) || nuevoLote.pesoUnitario <= 0) {
+        imprimirMensaje("ADVERTENCIA", "Peso unitario no valido");
+        std::cin.clear();
+        std::cin.ignore(1000, '\n');
+        std::cout << "Ingrese el peso unitario: ";
+    }
+
+    std::cout << "Ingrese la cantidad total: ";
+    while (!validarEntradaNumerica(nuevoLote.cantidadTotal) || nuevoLote.cantidadTotal <= 0) {
+        imprimirMensaje("ADVERTENCIA", "Cantidad total no valida");
+        std::cout << "Ingrese la cantidad total: ";
+    }
+
+
+    // Asignar el lote al maestro
+    maestroLotes[indiceDisponible] = nuevoLote;
+    indicesDisponibles[indiceDisponible] = 1;
+
+    // Asignar el puntero en el almacén
+    almacen[fila][columna] = nuevoLote;
+
+    imprimirMensaje("EXITO", "Lote colocado correctamente en la posicion (" + 
+                   std::to_string(fila) + ", " + std::to_string(columna) + ")");
+    
+    // Mostrar resumen del lote colocado como confirmación
+    std::cout << "Resumen del lote:" << std::endl;
+    std::cout << "  ID: " << nuevoLote.idLote << std::endl;
+    std::cout << "  Componente: " << nuevoLote.nombreComponente << std::endl;
+    std::cout << "  Peso unitario: " << nuevoLote.pesoUnitario << std::endl;
+    std::cout << "  Cantidad total: " << nuevoLote.cantidadTotal << std::endl;
 }
 
 void finalizarEjecucion(int filas) {
