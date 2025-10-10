@@ -12,6 +12,11 @@ void limpiarMemoriaVectoresP();
 void colocarLote(int filas, int columnas, int tam_vectores_p);
 void reportePorFila(int filas, int columnas);
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p);
+void controlCalidad(int tam_vectores_p);
+bool pilaLlena();
+bool pilaVacia();
+void pushPila(int idLote, int resultado);
+void popPila();
 void finalizarEjecucion(int filas, int columnas);
 
 // Estructuras y variables globales
@@ -100,10 +105,10 @@ int main() {
             buscarPorComponente(filas, columnas, tam_vectores_p);
             break;
         case 4:
-            imprimirMensaje("OPCION", "Control de calidad");
+            controlCalidad(tam_vectores_p);
             break; 
         case 5:
-            imprimirMensaje("OPCION", "Deshacer inspeccion");
+            popPila();
             break;
         case 0:
             finalizarEjecucion(filas, columnas);
@@ -201,6 +206,12 @@ void limpiarMemoriaVectoresP() {
 
     delete [] indicesDisponibles;
     indicesDisponibles = nullptr;
+
+    delete [] pilaIDLote;
+    pilaIDLote = nullptr;
+    
+    delete [] pilaResultado;
+    pilaResultado = nullptr;
 }
 
 void colocarLote(int filas, int columnas, int tam_vectores_p) {
@@ -400,6 +411,23 @@ void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
     if (!encontrado) {
         imprimirMensaje("INFORMACION", "No se encontraron lotes con el componente: " + nombreBuscado);
     }
+}
+
+void controlCalidad(int tam_vectores_p) {
+}
+
+bool pilaLlena() {
+    return topePila == capacidadPila - 1;
+}
+
+bool pilaVacia() {
+    return topePila == -1;
+}
+
+void pushPila(int idLote, int resultado) {
+}
+
+void popPila() {
 }
 
 void finalizarEjecucion(int filas, int columnas) {
