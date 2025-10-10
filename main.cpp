@@ -414,6 +414,56 @@ void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
 }
 
 void controlCalidad(int tam_vectores_p) {
+    int idLote, resultado;
+    bool entrada_valida = false;
+    bool loteEncontrado = false;
+    
+    std::cout << "Ingrese el ID del lote a inspeccionar: ";
+    while (!entrada_valida || !loteEncontrado) {
+        entrada_valida = validarEntradaNumerica(idLote);
+        
+        if (!entrada_valida) {
+            imprimirMensaje("ADVERTENCIA", "ID de lote no valido");
+            std::cout << "Ingrese el ID del lote a inspeccionar: ";
+            continue;
+        }
+        
+        // Buscar si el lote existe
+        for (int i = 0; i < tam_vectores_p; i++) {
+            if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == idLote) {
+                loteEncontrado = true;
+                break;
+            }
+        }
+        
+        if (!loteEncontrado) {
+            imprimirMensaje("ADVERTENCIA", "El ID del lote no existe");
+            std::cout << "Ingrese el ID del lote a inspeccionar: ";
+        }
+    }
+    
+    entrada_valida = false;
+    std::cout << "Ingrese el resultado de la inspeccion (1=Aprobado, 0=Rechazado): ";
+    while (!entrada_valida || (resultado != 0 && resultado != 1)) {
+        entrada_valida = validarEntradaNumerica(resultado);
+        if (!entrada_valida || (resultado != 0 && resultado != 1)) {
+            imprimirMensaje("ADVERTENCIA", "Resultado no valido. Debe ser 0 o 1");
+            std::cout << "Ingrese el resultado de la inspeccion (1=Aprobado, 0=Rechazado): ";
+        }
+    }
+    
+    // Registrar en la pila
+    pushPila(idLote, resultado);
+    
+    std::cout << "Inspeccion Lote " << idLote;
+    std::cout << " (" << maestroLotes[0].nombreComponente << "): ";
+    std::cout << "Resultado ";
+    if (resultado == 1) {
+        std::cout << "Aprobado (1)";
+    } else {
+        std::cout << "Rechazado (0)";
+    }
+    std::cout << std::endl;
 }
 
 bool pilaLlena() {
@@ -425,9 +475,43 @@ bool pilaVacia() {
 }
 
 void pushPila(int idLote, int resultado) {
+    if (pilaLlena()) {
+        for (int i = 0; i < capacidadPila - 1; i++) {
+            pilaIDLote[i] = pilaIDLote[i + 1];
+            pilaResultado[i] = pilaResultado[i + 1];
+        }
+        topePila = capacidadPila - 2;
+    } else {
+        topePila++;
+    }
+    
+    pilaIDLote[topePila] = idLote;
+    pilaResultado[topePila] = resultado;
+    
+    std::cout << "Evento PUSH a Pila: Lote " << idLote << " | Resultado " << resultado << std::endl;
 }
 
+
 void popPila() {
+     if (pilaVacia()) {
+        imprimirMensaje("ADVERTENCIA", "La pila de inspecciones esta vacia");
+        return;
+    }
+    
+    int idLote = pilaIDLote[topePila];
+    int resultado = pilaResultado[topePila];
+    
+    std::cout << "POP de Pila: Evento Lote " << idLote << " | Resultado ";
+    if (resultado == 1) {
+        std::cout << "Aprobado (1)";
+    } else {
+        std::cout << "Rechazado (0)";
+    }
+    std::cout << std::endl;
+    
+    topePila--;
+    
+    imprimirMensaje("INFORMACION", "Historial de inspeccion revertido");
 }
 
 void finalizarEjecucion(int filas, int columnas) {
