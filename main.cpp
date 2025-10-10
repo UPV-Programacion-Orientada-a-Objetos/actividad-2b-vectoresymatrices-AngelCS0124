@@ -34,7 +34,7 @@ int main() {
     bool entrada_valida = false;
 
     imprimirMensaje("INICIALIZACION", "Inicializando componentes del almacen...");
-    
+    // Validar filas y columnas
     while (filas <= 0) {
         std::cout << "Ingrese el numero de filas del almacen: ";
         entrada_valida = validarEntradaNumerica(filas);
@@ -63,7 +63,7 @@ int main() {
     imprimirMensaje("EXITO", "Almacen inicializado correctamente");
 
     imprimirMensaje("INICIALIZACION", "Inicializando vectores paralelos...");
-
+    // Validar tamaño de vectores paralelos
     while (tam_vectores_p <= 0) {
         std::cout << "Ingrese el numero de lotes activos : ";
         entrada_valida = validarEntradaNumerica(tam_vectores_p);
@@ -127,7 +127,7 @@ int imprimirMenu(){
     std::cout << "|  5. Deshacer inspeccion                     |" << std::endl;
     std::cout << "|  0. Salir                                   |" << std::endl;
     std::cout << "+---------------------------------------------+" << std::endl;
-
+    // Validar opción del menú
     while (!entrada_valida || opc_selecc < 0 || opc_selecc > 5) {
         std::cout << "Ingrese una opcion (0-5): ";
         entrada_valida = validarEntradaNumerica(opc_selecc);
@@ -339,7 +339,7 @@ void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
     
     std::cout << "Resultados de la busqueda para: " << nombreBuscado << std::endl;
     std::cout << "----------------------------------------" << std::endl;
-    
+    // Recorrer el almacen para buscar el componente
     for (int i = 0; i < filas; i++) {
         for (int j = 0; j < columnas; j++) {
             if (almacen[i][j].idLote != 0) {
