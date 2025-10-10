@@ -10,6 +10,7 @@ void limpiarMemoriaAlmacen(int filas);
 void inicializarVectoresP(int tam);
 void limpiarMemoriaVectoresP();
 void colocarLote(int filas, int columnas, int tam_vectores_p);
+void reportePorFila(int filas, int columnas);
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p);
 void finalizarEjecucion(int filas);
 
@@ -90,7 +91,7 @@ int main() {
             colocarLote(filas, columnas, tam_vectores_p);
             break;
         case 2:
-            imprimirMensaje("OPCION", "Reporte por fila");
+            reportePorFila(filas, columnas);
             break;
         case 3:
             buscarPorComponente(filas, columnas, tam_vectores_p);
@@ -324,6 +325,12 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     std::cout << "  Componente: " << nuevoLote.nombreComponente << std::endl;
     std::cout << "  Peso unitario: " << nuevoLote.pesoUnitario << std::endl;
     std::cout << "  Cantidad total: " << nuevoLote.cantidadTotal << std::endl;
+}
+
+void reportePorFila(int filas, int columnas) {
+    int filaReporte;
+    bool entrada_valida = false;
+    bool hayLotes = false;
 }
 
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
