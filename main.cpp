@@ -331,6 +331,16 @@ void reportePorFila(int filas, int columnas) {
     int filaReporte;
     bool entrada_valida = false;
     bool hayLotes = false;
+
+    // Validar fila
+    while (!entrada_valida || filaReporte < 0 || filaReporte >= filas) {
+        std::cout << "Ingrese el numero de fila a reportar (0 a " << filas - 1 << "): ";
+        entrada_valida = validarEntradaNumerica(filaReporte);
+        if (!entrada_valida || filaReporte < 0 || filaReporte >= filas) {
+            imprimirMensaje("ADVERTENCIA", "Fila no valida");
+            entrada_valida = false;
+        }
+    }
 }
 
 void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
