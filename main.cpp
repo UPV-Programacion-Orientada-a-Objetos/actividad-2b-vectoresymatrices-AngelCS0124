@@ -17,6 +17,7 @@ bool pilaLlena();
 bool pilaVacia();
 void pushPila(int idLote, int resultado);
 void popPila();
+void expandirVectoresP(int filas, int columnas);
 void finalizarEjecucion(int filas, int columnas);
 
 // Estructuras y variables globales
@@ -37,6 +38,8 @@ int *pilaResultado;
 
 int topePila = -1;
 const int capacidadPila = 10;
+
+int capacidadActualVectores = 0;
 
 int main() {
     int opc = - 1, filas = 0, columnas = 0, tam_vectores_p = 0;
@@ -188,6 +191,8 @@ void limpiarMemoriaAlmacen(int filas, int columnas) {
 }
 
 void inicializarVectoresP(int tam) {
+    capacidadActualVectores = tam;  
+    
     maestroLotes = new LoteProduccion[tam];
     indicesDisponibles = new int[tam];
 
@@ -198,6 +203,8 @@ void inicializarVectoresP(int tam) {
         indicesDisponibles[i] = 0;
         maestroLotes[i].idLote = 0;
     }
+    
+    topePila = -1;
 }
 
 void limpiarMemoriaVectoresP() {
@@ -215,7 +222,7 @@ void limpiarMemoriaVectoresP() {
 }
 
 void colocarLote(int filas, int columnas, int tam_vectores_p) {
-    int fila, columna;
+    int fila = 0, columna = 0;
     bool entrada_valida = false;
 
     // Validar fila
@@ -247,7 +254,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
 
     // Buscar índice disponible en el maestro de lotes
     int indiceDisponible = -1;
-    for (int i = 0; i < tam_vectores_p; i++) {
+    for (int i = 0; i < capacidadActualVectores; i++) {
         if (indicesDisponibles[i] == 0) {
             indiceDisponible = i;
             break;
@@ -255,11 +262,18 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     }
 
     if (indiceDisponible == -1) {
-        imprimirMensaje("ERROR", "No hay espacio disponible en el maestro de lotes");
-        return;
+        expandirVectoresP(filas, columnas);
+        
+        // Buscar nuevamente después de expandir
+        for (int i = 0; i < capacidadActualVectores; i++) {
+            if (indicesDisponibles[i] == 0) {
+                indiceDisponible = i;
+                break;
+            }
+        }
     }
 
-    LoteProduccion* nuevoLote = new LoteProduccion;
+    LoteProduccion* nuevoLote = &maestroLotes[indiceDisponible];
     
     // Validar ID único
     bool idUnico = false;
@@ -272,8 +286,8 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         
         // Verificar si el ID ya existe
         bool idExiste = false;
-        for (int i = 0; i < tam_vectores_p; i++) {
-            if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == nuevoLote->idLote) {
+        for (int i = 0; i < capacidadActualVectores; i++) {
+            if (i != indiceDisponible && indicesDisponibles[i] == 1 && maestroLotes[i].idLote == nuevoLote->idLote) {
                 idExiste = true;
                 break;
             }
@@ -298,8 +312,8 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         
         // Verificar si el nombre ya existe
         bool nombreExiste = false;
-        for (int i = 0; i < tam_vectores_p; i++) {
-            if (indicesDisponibles[i] == 1) {
+        for (int i = 0; i < capacidadActualVectores; i++) { 
+            if (i != indiceDisponible && indicesDisponibles[i] == 1) {
                 std::string nombreExistente = maestroLotes[i].nombreComponente;
                 if (nombreExistente == nuevoNombre) {
                     nombreExiste = true;
@@ -329,10 +343,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         std::cout << "Ingrese la cantidad total: ";
     }
 
-    // Asignar el lote al maestro
-    maestroLotes[indiceDisponible] = *nuevoLote;
     indicesDisponibles[indiceDisponible] = 1;
-
     almacen[fila][columna] = nuevoLote;
 
     imprimirMensaje("EXITO", "Lote colocado correctamente en la posicion (" + 
@@ -347,7 +358,7 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
 }
 
 void reportePorFila(int filas, int columnas) {
-    int filaReporte;
+    int filaReporte = 0;
     bool entrada_valida = false;
     bool hayLotes = false;
 
@@ -429,7 +440,7 @@ void controlCalidad(int tam_vectores_p) {
         }
         
         // Buscar si el lote existe
-        for (int i = 0; i < tam_vectores_p; i++) {
+        for (int i = 0; i < capacidadActualVectores; i++) { 
             if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == idLote) {
                 loteEncontrado = true;
                 break;
@@ -455,8 +466,17 @@ void controlCalidad(int tam_vectores_p) {
     // Registrar en la pila
     pushPila(idLote, resultado);
     
+    // Buscar el nombre real del lote para mostrar
+    std::string nombreComponente = "";
+    for (int i = 0; i < capacidadActualVectores; i++) {
+        if (indicesDisponibles[i] == 1 && maestroLotes[i].idLote == idLote) {
+            nombreComponente = maestroLotes[i].nombreComponente;
+            break;
+        }
+    }
+    
     std::cout << "Inspeccion Lote " << idLote;
-    std::cout << " (" << maestroLotes[0].nombreComponente << "): ";
+    std::cout << " (" << nombreComponente << "): ";
     std::cout << "Resultado ";
     if (resultado == 1) {
         std::cout << "Aprobado (1)";
@@ -512,6 +532,50 @@ void popPila() {
     topePila--;
     
     imprimirMensaje("INFORMACION", "Historial de inspeccion revertido");
+}
+
+void expandirVectoresP(int filas, int columnas) {
+    int nuevaCapacidad = capacidadActualVectores * 2;
+    
+    // Crear nuevos arrays
+    LoteProduccion* nuevoMaestro = new LoteProduccion[nuevaCapacidad];
+    int* nuevosIndices = new int[nuevaCapacidad];
+    
+    // Copiar datos existentes
+    for (int i = 0; i < capacidadActualVectores; i++) {
+        nuevoMaestro[i] = maestroLotes[i];
+        nuevosIndices[i] = indicesDisponibles[i];
+    }
+    
+    // Inicializar nuevas posiciones
+    for (int i = capacidadActualVectores; i < nuevaCapacidad; i++) {
+        nuevosIndices[i] = 0;
+        nuevoMaestro[i].idLote = 0;
+    }
+    
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            if (almacen[i][j] != nullptr) {
+                for (int k = 0; k < capacidadActualVectores; k++) {
+                    if (&maestroLotes[k] == almacen[i][j]) {
+                        almacen[i][j] = &nuevoMaestro[k];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Liberar memoria antigua
+    delete [] maestroLotes;
+    delete [] indicesDisponibles;
+    
+    // Actualizar punteros y capacidad
+    maestroLotes = nuevoMaestro;
+    indicesDisponibles = nuevosIndices;
+    capacidadActualVectores = nuevaCapacidad;
+    
+    imprimirMensaje("EXPANSION", "Vectores paralelos expandidos a capacidad: " + std::to_string(nuevaCapacidad));
 }
 
 void finalizarEjecucion(int filas, int columnas) {
