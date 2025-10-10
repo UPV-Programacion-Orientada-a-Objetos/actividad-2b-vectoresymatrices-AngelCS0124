@@ -30,6 +30,9 @@ int *indicesDisponibles;
 int *pilaIDLote;
 int *pilaResultado;
 
+int topePila = -1;
+const int capacidadPila = 10;
+
 int main() {
     int opc = - 1, filas = 0, columnas = 0, tam_vectores_p = 0;
     bool entrada_valida = false;
