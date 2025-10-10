@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 // Prototipos de funciones
 int imprimirMenu();
@@ -9,6 +10,7 @@ void limpiarMemoriaAlmacen(int filas);
 void inicializarVectoresP(int tam);
 void limpiarMemoriaVectoresP();
 void colocarLote(int filas, int columnas, int tam_vectores_p);
+void buscarPorComponente(int filas, int columnas, int tam_vectores_p);
 void finalizarEjecucion(int filas);
 
 // Estructuras y variables globales
@@ -91,7 +93,7 @@ int main() {
             imprimirMensaje("OPCION", "Reporte por fila");
             break;
         case 3:
-            imprimirMensaje("OPCION", "Busqueda por componente");
+            buscarPorComponente(filas, columnas, tam_vectores_p);
             break;
         case 4:
             imprimirMensaje("OPCION", "Control de calidad");
@@ -268,8 +270,32 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
 
     std::cin.ignore(1000, '\n');
 
-    std::cout << "Ingrese el nombre del componente: ";
-    std::cin.getline(nuevoLote.nombreComponente, 50);
+    // Validar nombre único
+    bool nombreUnico = false;
+    while (!nombreUnico) {
+        std::cout << "Ingrese el nombre del componente: ";
+        std::cin.getline(nuevoLote.nombreComponente, 50);
+        
+        std::string nuevoNombre = nuevoLote.nombreComponente;
+        
+        // Verificar si el nombre ya existe
+        bool nombreExiste = false;
+        for (int i = 0; i < tam_vectores_p; i++) {
+            if (indicesDisponibles[i] == 1) {
+                std::string nombreExistente = maestroLotes[i].nombreComponente;
+                if (nombreExistente == nuevoNombre) {
+                    nombreExiste = true;
+                    break;
+                }
+            }
+        }
+        
+        if (nombreExiste) {
+            imprimirMensaje("ADVERTENCIA", "El nombre del componente ya existe. Ingrese un nombre diferente.");
+        } else {
+            nombreUnico = true;
+        }
+    }
 
     std::cout << "Ingrese el peso unitario: ";
     while (!(std::cin >> nuevoLote.pesoUnitario) || nuevoLote.pesoUnitario <= 0) {
@@ -284,7 +310,6 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
         imprimirMensaje("ADVERTENCIA", "Cantidad total no valida");
         std::cout << "Ingrese la cantidad total: ";
     }
-
 
     // Asignar el lote al maestro
     maestroLotes[indiceDisponible] = nuevoLote;
@@ -302,6 +327,39 @@ void colocarLote(int filas, int columnas, int tam_vectores_p) {
     std::cout << "  Componente: " << nuevoLote.nombreComponente << std::endl;
     std::cout << "  Peso unitario: " << nuevoLote.pesoUnitario << std::endl;
     std::cout << "  Cantidad total: " << nuevoLote.cantidadTotal << std::endl;
+}
+
+void buscarPorComponente(int filas, int columnas, int tam_vectores_p) {
+    std::string nombreBuscado;
+    bool encontrado = false;
+    
+    std::cout << "Ingrese el nombre del componente a buscar: ";
+    std::cin.ignore(1000, '\n');
+    std::getline(std::cin, nombreBuscado);
+    
+    std::cout << "Resultados de la busqueda para: " << nombreBuscado << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            if (almacen[i][j].idLote != 0) {
+                std::string nombreActual = almacen[i][j].nombreComponente;
+                if (nombreActual == nombreBuscado) {
+                    std::cout << "Ubicacion: (" << i << ", " << j << ")" << std::endl;
+                    std::cout << "  ID del lote: " << almacen[i][j].idLote << std::endl;
+                    std::cout << "  Componente: " << almacen[i][j].nombreComponente << std::endl;
+                    std::cout << "  Peso unitario: " << almacen[i][j].pesoUnitario << std::endl;
+                    std::cout << "  Cantidad total: " << almacen[i][j].cantidadTotal << std::endl;
+                    std::cout << "----------------------------------------" << std::endl;
+                    encontrado = true;
+                }
+            }
+        }
+    }
+    
+    if (!encontrado) {
+        imprimirMensaje("INFORMACION", "No se encontraron lotes con el componente: " + nombreBuscado);
+    }
 }
 
 void finalizarEjecucion(int filas) {
